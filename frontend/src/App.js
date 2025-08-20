@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { Badge } from './components/ui/badge';
 import { Separator } from './components/ui/separator';
-import { FileText, Plus, Settings, BarChart3, Edit, Trash2, Download, Printer, Upload } from 'lucide-react';
+import { FileText, Plus, Settings, BarChart3, Edit, Trash2, Download, Printer, Upload, FileDown } from 'lucide-react';
 import { useToast } from './hooks/use-toast';
 import { Toaster } from './components/ui/toaster';
 import axios from 'axios';
