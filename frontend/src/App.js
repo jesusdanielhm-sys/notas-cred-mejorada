@@ -1129,6 +1129,203 @@ function App() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Nota de Entrega</DialogTitle>
+              <DialogDescription>
+                Modifica los datos de la nota de entrega seleccionada
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedNote && (
+              <div className="space-y-6">
+                {/* Lugar de Entrega */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Lugar de Entrega</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <Label>Dirección</Label>
+                      <Textarea
+                        value={selectedNote.delivery_location?.address || ''}
+                        onChange={(e) => setSelectedNote({
+                          ...selectedNote,
+                          delivery_location: {
+                            ...selectedNote.delivery_location,
+                            address: e.target.value
+                          }
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Persona de Contacto</Label>
+                      <Input
+                        value={selectedNote.delivery_location?.contact_person || ''}
+                        onChange={(e) => setSelectedNote({
+                          ...selectedNote,
+                          delivery_location: {
+                            ...selectedNote.delivery_location,
+                            contact_person: e.target.value
+                          }
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Teléfono</Label>
+                      <Input
+                        value={selectedNote.delivery_location?.phone || ''}
+                        onChange={(e) => setSelectedNote({
+                          ...selectedNote,
+                          delivery_location: {
+                            ...selectedNote.delivery_location,
+                            phone: e.target.value
+                          }
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Productos */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Productos</h3>
+                  {selectedNote.products?.map((product, index) => (
+                    <div key={index} className="border rounded-lg p-4 mb-4">
+                      <div className="grid grid-cols-5 gap-4">
+                        <div className="col-span-2">
+                          <Label>Descripción</Label>
+                          <Input
+                            value={product.description}
+                            onChange={(e) => {
+                              const updatedProducts = [...selectedNote.products];
+                              updatedProducts[index].description = e.target.value;
+                              setSelectedNote({
+                                ...selectedNote,
+                                products: updatedProducts
+                              });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label>Empaque UND</Label>
+                          <Input
+                            value={product.package_unit}
+                            onChange={(e) => {
+                              const updatedProducts = [...selectedNote.products];
+                              updatedProducts[index].package_unit = e.target.value;
+                              setSelectedNote({
+                                ...selectedNote,
+                                products: updatedProducts
+                              });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label>Empaque CANT</Label>
+                          <Input
+                            type="number"
+                            value={product.package_quantity}
+                            onChange={(e) => {
+                              const updatedProducts = [...selectedNote.products];
+                              updatedProducts[index].package_quantity = parseInt(e.target.value) || 0;
+                              setSelectedNote({
+                                ...selectedNote,
+                                products: updatedProducts
+                              });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label>Venta UND</Label>
+                          <Input
+                            value={product.sale_unit}
+                            onChange={(e) => {
+                              const updatedProducts = [...selectedNote.products];
+                              updatedProducts[index].sale_unit = e.target.value;
+                              setSelectedNote({
+                                ...selectedNote,
+                                products: updatedProducts
+                              });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <Label>Venta CANT</Label>
+                          <Input
+                            type="number"
+                            value={product.sale_quantity}
+                            onChange={(e) => {
+                              const updatedProducts = [...selectedNote.products];
+                              updatedProducts[index].sale_quantity = parseInt(e.target.value) || 0;
+                              setSelectedNote({
+                                ...selectedNote,
+                                products: updatedProducts
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                      {selectedNote.products.length > 1 && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            const updatedProducts = selectedNote.products.filter((_, i) => i !== index);
+                            setSelectedNote({
+                              ...selectedNote,
+                              products: updatedProducts
+                            });
+                          }}
+                          className="mt-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Eliminar
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button 
+                    onClick={() => {
+                      const newProduct = { description: '', package_unit: '', package_quantity: 0, sale_unit: '', sale_quantity: 0 };
+                      setSelectedNote({
+                        ...selectedNote,
+                        products: [...selectedNote.products, newProduct]
+                      });
+                    }}
+                    variant="outline"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Agregar Producto
+                  </Button>
+                </div>
+
+                {/* Transporte */}
+                <div>
+                  <Label>Transporte</Label>
+                  <Input
+                    value={selectedNote.transport || ''}
+                    onChange={(e) => setSelectedNote({
+                      ...selectedNote,
+                      transport: e.target.value
+                    })}
+                    placeholder="Información de transporte"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={updateDeliveryNote}>
+                    Guardar Cambios
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
       <Toaster />
     </div>
