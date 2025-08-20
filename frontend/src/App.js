@@ -749,18 +749,41 @@ function App() {
                               size="sm"
                               variant="outline"
                               onClick={() => printNote(note)}
+                              title="Imprimir"
                             >
                               <Printer className="w-4 h-4" />
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => {
-                                setSelectedNote(note);
-                                setIsEditing(true);
-                              }}
+                              onClick={() => exportToPDF(note)}
+                              title="Exportar a PDF"
+                            >
+                              <FileDown className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => exportToWord(note)}
+                              title="Exportar a Word"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openEditDialog(note)}
+                              title="Editar"
                             >
                               <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteDeliveryNote(note.id)}
+                              title="Eliminar"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>
