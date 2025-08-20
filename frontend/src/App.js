@@ -258,7 +258,7 @@ function App() {
         };
         
         const existingClients = LocalStorageManager.get(STORAGE_KEYS.CLIENTS) || [];
-        const updatedClients = [...existingClients, newClient];
+        const updatedClients = [...existingClients, clientToCreate];
         LocalStorageManager.set(STORAGE_KEYS.CLIENTS, updatedClients);
         setClients(updatedClients);
       } else {
