@@ -434,6 +434,203 @@ function App() {
     setNewNote({ ...newNote, products });
   };
 
+  const deleteDeliveryNote = async (noteId) => {
+    try {
+      if (isOfflineMode) {
+        const updatedNotes = deliveryNotes.filter(note => note.id !== noteId);
+        LocalStorageManager.set(STORAGE_KEYS.DELIVERY_NOTES, updatedNotes);
+        setDeliveryNotes(updatedNotes);
+      } else {
+        await axios.delete(`${API}/delivery-notes/${noteId}`);
+        loadDeliveryNotes();
+      }
+      
+      loadStatistics();
+      toast({
+        title: "Éxito",
+        description: "Nota de entrega eliminada exitosamente",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la nota de entrega",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openEditDialog = (note) => {
+    setSelectedNote(note);
+    setEditDialogOpen(true);
+  };
+
+  const updateDeliveryNote = async () => {
+    try {
+      if (isOfflineMode) {
+        const updatedNotes = deliveryNotes.map(note =>
+          note.id === selectedNote.id ? selectedNote : note
+        );
+        LocalStorageManager.set(STORAGE_KEYS.DELIVERY_NOTES, updatedNotes);
+        setDeliveryNotes(updatedNotes);
+      } else {
+        const updateData = {
+          client_id: selectedNote.client_id,
+          delivery_location: selectedNote.delivery_location,
+          products: selectedNote.products,
+          transport: selectedNote.transport
+        };
+        await axios.put(`${API}/delivery-notes/${selectedNote.id}`, updateData);
+        loadDeliveryNotes();
+      }
+      
+      setEditDialogOpen(false);
+      toast({
+        title: "Éxito",
+        description: "Nota de entrega actualizada exitosamente",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar la nota de entrega",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportToPDF = (note) => {
+    const printContent = generatePrintContent(note);
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Nota de Entrega - ${note.note_number}</title>
+          <style>
+            @media print {
+              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+              .no-print { display: none !important; }
+              table { border-collapse: collapse; width: 100%; }
+              table, th, td { border: 1px solid #000; }
+              th, td { padding: 8px; text-align: left; }
+              th { background-color: #f5f5f5; }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent}
+          <div class="no-print" style="position: fixed; top: 20px; right: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; margin-right: 10px;">Imprimir/PDF</button>
+            <button onclick="window.close()" style="padding: 10px 20px;">Cerrar</button>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const exportToWord = (note) => {
+    const content = generatePrintContent(note, 'word');
+    const blob = new Blob([content], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Nota_${note.note_number}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Éxito",
+      description: "Archivo Word descargado exitosamente",
+    });
+  };
+
+  const generatePrintContent = (note, format = 'html') => {
+    const isWord = format === 'word';
+    const stylePrefix = isWord ? '' : 'style="';
+    const styleSuffix = isWord ? '' : '"';
+    
+    return `
+      <div ${stylePrefix}font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;${styleSuffix}>
+        <div ${stylePrefix}text-align: center; margin-bottom: 30px;${styleSuffix}>
+          ${companyConfig?.logo && !isWord ? `<img src="${companyConfig.logo}" ${stylePrefix}max-height: 100px; margin-bottom: 10px;${styleSuffix}>` : ''}
+          <h1 ${stylePrefix}margin: 0; font-size: 24px;${styleSuffix}>${companyConfig?.name || 'EMPRESA'}</h1>
+          <p ${stylePrefix}margin: 5px 0;${styleSuffix}>RIF: ${companyConfig?.rif || ''}</p>
+          <p ${stylePrefix}margin: 5px 0;${styleSuffix}>${companyConfig?.address || ''}</p>
+          <p ${stylePrefix}margin: 5px 0;${styleSuffix}>Teléfono: ${companyConfig?.phone || ''}</p>
+        </div>
+        
+        <h2 ${stylePrefix}text-align: center; margin-bottom: 30px;${styleSuffix}>NOTA DE ENTREGA</h2>
+        <p ${stylePrefix}text-align: right; margin-bottom: 20px;${styleSuffix}><strong>Número: ${note.note_number}</strong></p>
+        <p ${stylePrefix}text-align: right; margin-bottom: 30px;${styleSuffix}><strong>Fecha Emisión: ${new Date(note.issue_date).toLocaleDateString()}</strong></p>
+        
+        <div ${stylePrefix}margin-bottom: 30px;${styleSuffix}>
+          <p><strong>Cliente:</strong> ${note.client_info.name}</p>
+          <p><strong>R.I.F/C.I.:</strong> ${note.client_info.rif_ci}</p>
+          <p><strong>Dirección:</strong> ${note.client_info.address}</p>
+          <p><strong>Cond. Pago/Venc.:</strong> ${note.client_info.payment_condition}</p>
+        </div>
+        
+        <div ${stylePrefix}margin-bottom: 30px;${styleSuffix}>
+          <p><strong>Lugar de entrega:</strong></p>
+          <p><strong>Dirección:</strong> ${note.delivery_location.address}</p>
+          <p><strong>Persona de contacto:</strong> ${note.delivery_location.contact_person}</p>
+          <p><strong>Teléfono:</strong> ${note.delivery_location.phone}</p>
+        </div>
+        
+        <table ${stylePrefix}width: 100%; border-collapse: collapse; margin-bottom: 30px;${styleSuffix}>
+          <thead>
+            <tr ${stylePrefix}background-color: #f5f5f5;${styleSuffix}>
+              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: left;${styleSuffix}>DESCRIPCIÓN</th>
+              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>EMPAQUE UND</th>
+              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>EMPAQUE CANT</th>
+              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>VENTA UND</th>
+              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>VENTA CANT</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${note.products.map(product => `
+              <tr>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>${product.description}</td>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>${product.package_unit}</td>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>${product.package_quantity}</td>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>${product.sale_unit}</td>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>${product.sale_quantity}</td>
+              </tr>
+            `).join('')}
+            ${Array(Math.max(0, 15 - note.products.length)).fill().map(() => `
+              <tr>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 20px; height: 25px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>&nbsp;</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div ${stylePrefix}margin-bottom: 50px;${styleSuffix}>
+          <p><strong>TRANSPORTE:</strong> ${note.transport || ''}</p>
+        </div>
+        
+        <div ${stylePrefix}margin-top: 50px;${styleSuffix}>
+          <p><strong>RECIBIDO CONFORME CLIENTE:</strong></p>
+          <br><br>
+          <p><strong>NOMBRE/FIRMA:</strong> _________________________________</p>
+          <br>
+          <p><strong>CÉDULA:</strong> _________________________________</p>
+          <br>
+          <p><strong>FECHA:</strong> _________________________________</p>
+        </div>
+      </div>
+    `;
+  };
+
   const printNote = (note) => {
     const printContent = `
       <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
