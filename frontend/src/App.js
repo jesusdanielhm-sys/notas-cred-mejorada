@@ -568,64 +568,78 @@ function App() {
         <p ${stylePrefix}text-align: right; margin-bottom: 20px;${styleSuffix}><strong>Número: ${note.note_number}</strong></p>
         <p ${stylePrefix}text-align: right; margin-bottom: 30px;${styleSuffix}><strong>Fecha Emisión: ${new Date(note.issue_date).toLocaleDateString()}</strong></p>
         
-        <div ${stylePrefix}margin-bottom: 30px;${styleSuffix}>
-          <p><strong>Cliente:</strong> ${note.client_info.name}</p>
-          <p><strong>R.I.F/C.I.:</strong> ${note.client_info.rif_ci}</p>
-          <p><strong>Dirección:</strong> ${note.client_info.address}</p>
-          <p><strong>Cond. Pago/Venc.:</strong> ${note.client_info.payment_condition}</p>
+        <!-- Información del Cliente y Lugar de Entrega en dos columnas -->
+        <div ${stylePrefix}display: flex; gap: 20px; margin-bottom: 30px;${styleSuffix}>
+          <!-- Información del Cliente -->
+          <div ${stylePrefix}flex: 1; border: 2px solid #333; padding: 15px; border-radius: 8px;${styleSuffix}>
+            <h3 ${stylePrefix}margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px;${styleSuffix}>INFORMACIÓN DEL CLIENTE</h3>
+            <p ${stylePrefix}margin: 8px 0; font-size: 12px;${styleSuffix}><strong>Cliente:</strong> ${note.client_info.name}</p>
+            <p ${stylePrefix}margin: 8px 0; font-size: 12px;${styleSuffix}><strong>R.I.F/C.I.:</strong> ${note.client_info.rif_ci}</p>
+            <p ${stylePrefix}margin: 8px 0; font-size: 12px;${styleSuffix}><strong>Dirección:</strong> ${note.client_info.address}</p>
+            <p ${stylePrefix}margin: 8px 0; font-size: 12px;${styleSuffix}><strong>Cond. Pago/Venc.:</strong> ${note.client_info.payment_condition}</p>
+          </div>
+          
+          <!-- Lugar de Entrega -->
+          <div ${stylePrefix}flex: 1; border: 2px solid #333; padding: 15px; border-radius: 8px;${styleSuffix}>
+            <h3 ${stylePrefix}margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px;${styleSuffix}>LUGAR DE ENTREGA</h3>
+            <p ${stylePrefix}margin: 8px 0; font-size: 12px;${styleSuffix}><strong>Dirección:</strong> ${note.delivery_location.address}</p>
+            <p ${stylePrefix}margin: 8px 0; font-size: 12px;${styleSuffix}><strong>Persona de contacto:</strong> ${note.delivery_location.contact_person}</p>
+            <p ${stylePrefix}margin: 8px 0; font-size: 12px;${styleSuffix}><strong>Teléfono:</strong> ${note.delivery_location.phone}</p>
+          </div>
         </div>
         
-        <div ${stylePrefix}margin-bottom: 30px;${styleSuffix}>
-          <p><strong>Lugar de entrega:</strong></p>
-          <p><strong>Dirección:</strong> ${note.delivery_location.address}</p>
-          <p><strong>Persona de contacto:</strong> ${note.delivery_location.contact_person}</p>
-          <p><strong>Teléfono:</strong> ${note.delivery_location.phone}</p>
-        </div>
-        
-        <table ${stylePrefix}width: 100%; border-collapse: collapse; margin-bottom: 30px;${styleSuffix}>
+        <table ${stylePrefix}width: 100%; border-collapse: collapse; margin-bottom: 30px; border: 2px solid #333;${styleSuffix}>
           <thead>
             <tr ${stylePrefix}background-color: #f5f5f5;${styleSuffix}>
-              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: left;${styleSuffix}>DESCRIPCIÓN</th>
-              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>EMPAQUE UND</th>
-              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>EMPAQUE CANT</th>
-              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>VENTA UND</th>
-              <th ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>VENTA CANT</th>
+              <th ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; font-weight: bold; width: 40%;${styleSuffix}>DESCRIPCIÓN</th>
+              <th ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; font-weight: bold; width: 15%;${styleSuffix}>EMPAQUE<br>UND</th>
+              <th ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; font-weight: bold; width: 15%;${styleSuffix}>EMPAQUE<br>CANT</th>
+              <th ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; font-weight: bold; width: 15%;${styleSuffix}>VENTA<br>UND</th>
+              <th ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; font-weight: bold; width: 15%;${styleSuffix}>VENTA<br>CANT</th>
             </tr>
           </thead>
           <tbody>
             ${note.products.map(product => `
               <tr>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>${product.description}</td>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>${product.package_unit}</td>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>${product.package_quantity}</td>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>${product.sale_unit}</td>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px; text-align: center;${styleSuffix}>${product.sale_quantity}</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: left; vertical-align: top;${styleSuffix}>${product.description}</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; vertical-align: top;${styleSuffix}>${product.package_unit}</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; vertical-align: top;${styleSuffix}>${product.package_quantity}</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; vertical-align: top;${styleSuffix}>${product.sale_unit}</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; vertical-align: top;${styleSuffix}>${product.sale_quantity}</td>
               </tr>
             `).join('')}
             ${Array(Math.max(0, 15 - note.products.length)).fill().map(() => `
               <tr>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 20px; height: 25px;${styleSuffix}>&nbsp;</td>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>&nbsp;</td>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>&nbsp;</td>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>&nbsp;</td>
-                <td ${stylePrefix}border: 1px solid #ddd; padding: 8px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 15px; height: 25px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 15px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 15px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 15px;${styleSuffix}>&nbsp;</td>
+                <td ${stylePrefix}border: 1px solid #333; padding: 15px;${styleSuffix}>&nbsp;</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
         
-        <div ${stylePrefix}margin-bottom: 50px;${styleSuffix}>
-          <p><strong>TRANSPORTE:</strong> ${note.transport || ''}</p>
+        <div ${stylePrefix}border: 2px solid #333; padding: 15px; margin-bottom: 30px; border-radius: 8px;${styleSuffix}>
+          <p ${stylePrefix}margin: 0; font-size: 12px;${styleSuffix}><strong>TRANSPORTE:</strong> ${note.transport || ''}</p>
         </div>
         
-        <div ${stylePrefix}margin-top: 50px;${styleSuffix}>
-          <p><strong>RECIBIDO CONFORME CLIENTE:</strong></p>
-          <br><br>
-          <p><strong>NOMBRE/FIRMA:</strong> _________________________________</p>
-          <br>
-          <p><strong>CÉDULA:</strong> _________________________________</p>
-          <br>
-          <p><strong>FECHA:</strong> _________________________________</p>
+        <div ${stylePrefix}border: 2px solid #333; padding: 20px; margin-top: 30px; border-radius: 8px;${styleSuffix}>
+          <h3 ${stylePrefix}margin: 0 0 20px 0; font-size: 14px; font-weight: bold; text-align: center; color: #333;${styleSuffix}>RECIBIDO CONFORME CLIENTE</h3>
+          <div ${stylePrefix}display: flex; justify-content: space-between; align-items: end; margin-top: 40px;${styleSuffix}>
+            <div ${stylePrefix}text-align: center; flex: 1;${styleSuffix}>
+              <div ${stylePrefix}border-bottom: 2px solid #333; margin-bottom: 5px; height: 40px;${styleSuffix}></div>
+              <p ${stylePrefix}margin: 0; font-size: 11px; font-weight: bold;${styleSuffix}>NOMBRE/FIRMA</p>
+            </div>
+            <div ${stylePrefix}text-align: center; flex: 1; margin: 0 20px;${styleSuffix}>
+              <div ${stylePrefix}border-bottom: 2px solid #333; margin-bottom: 5px; height: 40px;${styleSuffix}></div>
+              <p ${stylePrefix}margin: 0; font-size: 11px; font-weight: bold;${styleSuffix}>CÉDULA</p>
+            </div>
+            <div ${stylePrefix}text-align: center; flex: 1;${styleSuffix}>
+              <div ${stylePrefix}border-bottom: 2px solid #333; margin-bottom: 5px; height: 40px;${styleSuffix}></div>
+              <p ${stylePrefix}margin: 0; font-size: 11px; font-weight: bold;${styleSuffix}>FECHA</p>
+            </div>
+          </div>
         </div>
       </div>
     `;
