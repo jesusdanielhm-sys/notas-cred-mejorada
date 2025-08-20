@@ -104,56 +104,146 @@ function App() {
 
   // Load data on component mount
   useEffect(() => {
+    checkOfflineMode();
     loadDeliveryNotes();
     loadClients();
     loadCompanyConfig();
     loadStatistics();
   }, []);
 
+  const checkOfflineMode = () => {
+    const offlineMode = LocalStorageManager.get(STORAGE_KEYS.OFFLINE_MODE) || false;
+    setIsOfflineMode(offlineMode);
+  };
+
+  const toggleOfflineMode = () => {
+    const newOfflineMode = !isOfflineMode;
+    setIsOfflineMode(newOfflineMode);
+    LocalStorageManager.set(STORAGE_KEYS.OFFLINE_MODE, newOfflineMode);
+    
+    if (newOfflineMode) {
+      syncToLocalStorage();
+      toast({
+        title: "Modo Offline Activado",
+        description: "Los datos se guardarán localmente en tu navegador",
+      });
+    } else {
+      toast({
+        title: "Modo Online Activado",
+        description: "Los datos se guardarán en el servidor",
+      });
+    }
+  };
+
+  const syncToLocalStorage = async () => {
+    try {
+      // Sync current data from server to localStorage
+      const [notesRes, clientsRes, configRes] = await Promise.all([
+        axios.get(`${API}/delivery-notes`),
+        axios.get(`${API}/clients`),
+        axios.get(`${API}/company-config`)
+      ]);
+
+      LocalStorageManager.set(STORAGE_KEYS.DELIVERY_NOTES, notesRes.data);
+      LocalStorageManager.set(STORAGE_KEYS.CLIENTS, clientsRes.data);
+      LocalStorageManager.set(STORAGE_KEYS.COMPANY_CONFIG, configRes.data);
+    } catch (error) {
+      console.log("Error syncing to localStorage:", error);
+    }
+  };
+
   const loadDeliveryNotes = async () => {
     try {
-      const response = await axios.get(`${API}/delivery-notes`);
-      setDeliveryNotes(response.data);
+      if (isOfflineMode) {
+        const notes = LocalStorageManager.get(STORAGE_KEYS.DELIVERY_NOTES) || [];
+        setDeliveryNotes(notes);
+      } else {
+        const response = await axios.get(`${API}/delivery-notes`);
+        setDeliveryNotes(response.data);
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las notas de entrega",
-        variant: "destructive",
-      });
+      // Fallback to offline mode if server is unreachable
+      const notes = LocalStorageManager.get(STORAGE_KEYS.DELIVERY_NOTES) || [];
+      setDeliveryNotes(notes);
+      if (!isOfflineMode) {
+        setIsOfflineMode(true);
+        LocalStorageManager.set(STORAGE_KEYS.OFFLINE_MODE, true);
+        toast({
+          title: "Servidor no disponible",
+          description: "Cambiado a modo offline automáticamente",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const loadClients = async () => {
     try {
-      const response = await axios.get(`${API}/clients`);
-      setClients(response.data);
+      if (isOfflineMode) {
+        const clientsData = LocalStorageManager.get(STORAGE_KEYS.CLIENTS) || [];
+        setClients(clientsData);
+      } else {
+        const response = await axios.get(`${API}/clients`);
+        setClients(response.data);
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los clientes",
-        variant: "destructive",
-      });
+      const clientsData = LocalStorageManager.get(STORAGE_KEYS.CLIENTS) || [];
+      setClients(clientsData);
     }
   };
 
   const loadCompanyConfig = async () => {
     try {
-      const response = await axios.get(`${API}/company-config`);
-      if (response.data) {
-        setCompanyConfig(response.data);
-        setCompanyForm(response.data);
+      if (isOfflineMode) {
+        const config = LocalStorageManager.get(STORAGE_KEYS.COMPANY_CONFIG);
+        if (config) {
+          setCompanyConfig(config);
+          setCompanyForm(config);
+        }
+      } else {
+        const response = await axios.get(`${API}/company-config`);
+        if (response.data) {
+          setCompanyConfig(response.data);
+          setCompanyForm(response.data);
+        }
       }
     } catch (error) {
-      console.log("No hay configuración de empresa");
+      const config = LocalStorageManager.get(STORAGE_KEYS.COMPANY_CONFIG);
+      if (config) {
+        setCompanyConfig(config);
+        setCompanyForm(config);
+      }
     }
   };
 
   const loadStatistics = async () => {
     try {
-      const response = await axios.get(`${API}/statistics`);
-      setStatistics(response.data);
+      if (isOfflineMode) {
+        const notes = LocalStorageManager.get(STORAGE_KEYS.DELIVERY_NOTES) || [];
+        const clientsData = LocalStorageManager.get(STORAGE_KEYS.CLIENTS) || [];
+        
+        const clientStats = {};
+        notes.forEach(note => {
+          const clientName = note.client_info?.name || 'Desconocido';
+          clientStats[clientName] = (clientStats[clientName] || 0) + 1;
+        });
+
+        const notesByClient = Object.entries(clientStats).map(([name, count]) => ({
+          _id: name,
+          count
+        }));
+
+        setStatistics({
+          total_notes: notes.length,
+          total_clients: clientsData.length,
+          notes_by_client: notesByClient
+        });
+      } else {
+        const response = await axios.get(`${API}/statistics`);
+        setStatistics(response.data);
+      }
     } catch (error) {
-      console.log("Error cargando estadísticas");
+      console.log("Error loading statistics");
     }
   };
 
