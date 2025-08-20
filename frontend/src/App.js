@@ -632,85 +632,32 @@ function App() {
   };
 
   const printNote = (note) => {
-    const printContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          ${companyConfig?.logo ? `<img src="${companyConfig.logo}" style="max-height: 100px; margin-bottom: 10px;">` : ''}
-          <h1 style="margin: 0; font-size: 24px;">${companyConfig?.name || 'EMPRESA'}</h1>
-          <p style="margin: 5px 0;">RIF: ${companyConfig?.rif || ''}</p>
-          <p style="margin: 5px 0;">${companyConfig?.address || ''}</p>
-          <p style="margin: 5px 0;">Teléfono: ${companyConfig?.phone || ''}</p>
-        </div>
-        
-        <h2 style="text-align: center; margin-bottom: 30px;">NOTA DE ENTREGA</h2>
-        <p style="text-align: right; margin-bottom: 20px;"><strong>Número: ${note.note_number}</strong></p>
-        <p style="text-align: right; margin-bottom: 30px;"><strong>Fecha Emisión: ${new Date(note.issue_date).toLocaleDateString()}</strong></p>
-        
-        <div style="margin-bottom: 30px;">
-          <p><strong>Cliente:</strong> ${note.client_info.name}</p>
-          <p><strong>R.I.F/C.I.:</strong> ${note.client_info.rif_ci}</p>
-          <p><strong>Dirección:</strong> ${note.client_info.address}</p>
-          <p><strong>Cond. Pago/Venc.:</strong> ${note.client_info.payment_condition}</p>
-        </div>
-        
-        <div style="margin-bottom: 30px;">
-          <p><strong>Lugar de entrega:</strong></p>
-          <p><strong>Dirección:</strong> ${note.delivery_location.address}</p>
-          <p><strong>Persona de contacto:</strong> ${note.delivery_location.contact_person}</p>
-          <p><strong>Teléfono:</strong> ${note.delivery_location.phone}</p>
-        </div>
-        
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
-          <thead>
-            <tr style="background-color: #f5f5f5;">
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">DESCRIPCIÓN</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">EMPAQUE UND</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">EMPAQUE CANT</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">VENTA UND</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">VENTA CANT</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${note.products.map(product => `
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">${product.description}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${product.package_unit}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${product.package_quantity}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${product.sale_unit}</td>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${product.sale_quantity}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        
-        <div style="margin-bottom: 50px;">
-          <p><strong>TRANSPORTE:</strong> ${note.transport || ''}</p>
-        </div>
-        
-        <div style="margin-top: 50px;">
-          <p><strong>RECIBIDO CONFORME CLIENTE:</strong></p>
-          <br><br>
-          <p><strong>NOMBRE/FIRMA:</strong> _________________________________</p>
-          <br>
-          <p><strong>CÉDULA:</strong> _________________________________</p>
-          <br>
-          <p><strong>FECHA:</strong> _________________________________</p>
-        </div>
-      </div>
-    `;
+    const printContent = generatePrintContent(note);
     
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <html>
         <head>
           <title>Nota de Entrega - ${note.note_number}</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 0; 
+              padding: 20px; 
+              font-size: 12pt; 
+              line-height: 1.4;
+            }
+            @media print {
+              .no-print { display: none !important; }
+            }
+          </style>
         </head>
         <body>
           ${printContent}
           <script>
             window.onload = function() {
               window.print();
-              window.close();
+              setTimeout(() => window.close(), 100);
             }
           </script>
         </body>
