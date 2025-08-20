@@ -19,6 +19,51 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// LocalStorage utilities for offline functionality
+const STORAGE_KEYS = {
+  COMPANY_CONFIG: 'delivery_notes_company_config',
+  CLIENTS: 'delivery_notes_clients',
+  DELIVERY_NOTES: 'delivery_notes_delivery_notes',
+  OFFLINE_MODE: 'delivery_notes_offline_mode'
+};
+
+const LocalStorageManager = {
+  get: (key) => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch (error) {
+      console.error('Error reading from localStorage:', error);
+      return null;
+    }
+  },
+  
+  set: (key, value) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error('Error writing to localStorage:', error);
+    }
+  },
+  
+  remove: (key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error('Error removing from localStorage:', error);
+    }
+  }
+};
+
+// Generate UUID for offline mode
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 function App() {
   const [activeTab, setActiveTab] = useState('notes');
   const [deliveryNotes, setDeliveryNotes] = useState([]);
@@ -27,6 +72,8 @@ function App() {
   const [statistics, setStatistics] = useState(null);
   const [selectedNote, setSelectedNote] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Form states
