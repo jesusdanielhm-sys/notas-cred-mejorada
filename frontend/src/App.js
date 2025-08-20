@@ -250,7 +250,7 @@ function App() {
   const createClient = async () => {
     try {
       if (isOfflineMode) {
-        const newClient = {
+        const clientToCreate = {
           id: generateUUID(),
           ...newClient,
           last_note_number: 0,
