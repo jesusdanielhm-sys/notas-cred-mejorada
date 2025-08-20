@@ -249,9 +249,24 @@ function App() {
 
   const createClient = async () => {
     try {
-      await axios.post(`${API}/clients`, newClient);
+      if (isOfflineMode) {
+        const newClient = {
+          id: generateUUID(),
+          ...newClient,
+          last_note_number: 0,
+          created_at: new Date().toISOString()
+        };
+        
+        const existingClients = LocalStorageManager.get(STORAGE_KEYS.CLIENTS) || [];
+        const updatedClients = [...existingClients, newClient];
+        LocalStorageManager.set(STORAGE_KEYS.CLIENTS, updatedClients);
+        setClients(updatedClients);
+      } else {
+        await axios.post(`${API}/clients`, newClient);
+        loadClients();
+      }
+      
       setNewClient({ name: '', rif_ci: '', address: '', payment_condition: '' });
-      loadClients();
       toast({
         title: "Éxito",
         description: "Cliente creado exitosamente",
@@ -267,14 +282,59 @@ function App() {
 
   const createDeliveryNote = async () => {
     try {
-      await axios.post(`${API}/delivery-notes`, newNote);
+      if (isOfflineMode) {
+        const client = clients.find(c => c.id === newNote.client_id);
+        if (!client) {
+          toast({
+            title: "Error",
+            description: "Cliente no encontrado",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const newNoteNumber = client.last_note_number + 1;
+        const noteNumber = `${client.rif_ci}-${newNoteNumber.toString().padStart(3, '0')}`;
+
+        const deliveryNote = {
+          id: generateUUID(),
+          note_number: noteNumber,
+          issue_date: new Date().toISOString(),
+          client_id: newNote.client_id,
+          client_info: client,
+          delivery_location: newNote.delivery_location,
+          products: newNote.products,
+          transport: newNote.transport,
+          received_by_name: '',
+          received_by_cedula: '',
+          received_date: null,
+          created_at: new Date().toISOString()
+        };
+
+        // Update client's last note number
+        const updatedClients = clients.map(c => 
+          c.id === client.id ? { ...c, last_note_number: newNoteNumber } : c
+        );
+        LocalStorageManager.set(STORAGE_KEYS.CLIENTS, updatedClients);
+        setClients(updatedClients);
+
+        // Save delivery note
+        const existingNotes = LocalStorageManager.get(STORAGE_KEYS.DELIVERY_NOTES) || [];
+        const updatedNotes = [...existingNotes, deliveryNote];
+        LocalStorageManager.set(STORAGE_KEYS.DELIVERY_NOTES, updatedNotes);
+        setDeliveryNotes(updatedNotes);
+      } else {
+        await axios.post(`${API}/delivery-notes`, newNote);
+        loadDeliveryNotes();
+      }
+      
       setNewNote({
         client_id: '',
         delivery_location: { address: '', contact_person: '', phone: '' },
         products: [{ description: '', package_unit: '', package_quantity: 0, sale_unit: '', sale_quantity: 0 }],
         transport: ''
       });
-      loadDeliveryNotes();
+      
       loadStatistics();
       toast({
         title: "Éxito",
@@ -291,8 +351,19 @@ function App() {
 
   const saveCompanyConfig = async () => {
     try {
-      await axios.post(`${API}/company-config`, companyForm);
-      loadCompanyConfig();
+      if (isOfflineMode) {
+        const config = {
+          id: companyConfig?.id || generateUUID(),
+          ...companyForm,
+          created_at: companyConfig?.created_at || new Date().toISOString()
+        };
+        LocalStorageManager.set(STORAGE_KEYS.COMPANY_CONFIG, config);
+        setCompanyConfig(config);
+      } else {
+        await axios.post(`${API}/company-config`, companyForm);
+        loadCompanyConfig();
+      }
+      
       toast({
         title: "Éxito",
         description: "Configuración de empresa guardada exitosamente",
@@ -308,18 +379,34 @@ function App() {
 
   const uploadLogo = async (file) => {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await axios.post(`${API}/company-config/logo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      loadCompanyConfig();
-      toast({
-        title: "Éxito",
-        description: "Logo subido exitosamente",
-      });
+      if (isOfflineMode) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const logoDataUrl = e.target.result;
+          const updatedConfig = { ...companyConfig, logo: logoDataUrl };
+          LocalStorageManager.set(STORAGE_KEYS.COMPANY_CONFIG, updatedConfig);
+          setCompanyConfig(updatedConfig);
+          
+          toast({
+            title: "Éxito",
+            description: "Logo subido exitosamente",
+          });
+        };
+        reader.readAsDataURL(file);
+      } else {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        await axios.post(`${API}/company-config/logo`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        loadCompanyConfig();
+        toast({
+          title: "Éxito",
+          description: "Logo subido exitosamente",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
