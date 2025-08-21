@@ -622,7 +622,7 @@ function App() {
                 <td ${stylePrefix}border: 1px solid #333; padding: 10px; text-align: center; vertical-align: top;${styleSuffix}>${product.sale_quantity}</td>
               </tr>
             `).join('')}
-            ${Array(Math.max(0, 15 - note.products.length)).fill().map(() => `
+            ${note.products.length < 5 ? Array(Math.min(3, 5 - note.products.length)).fill().map(() => `
               <tr>
                 <td ${stylePrefix}border: 1px solid #333; padding: 15px; height: 25px;${styleSuffix}>&nbsp;</td>
                 <td ${stylePrefix}border: 1px solid #333; padding: 15px;${styleSuffix}>&nbsp;</td>
@@ -630,7 +630,7 @@ function App() {
                 <td ${stylePrefix}border: 1px solid #333; padding: 15px;${styleSuffix}>&nbsp;</td>
                 <td ${stylePrefix}border: 1px solid #333; padding: 15px;${styleSuffix}>&nbsp;</td>
               </tr>
-            `).join('')}
+            `).join('') : ''}
           </tbody>
         </table>
         
