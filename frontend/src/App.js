@@ -383,9 +383,23 @@ function App() {
         const reader = new FileReader();
         reader.onload = (e) => {
           const logoDataUrl = e.target.result;
-          const updatedConfig = { ...companyConfig, logo: logoDataUrl };
+          
+          // Asegurar que tenemos una configuración base si no existe
+          const baseConfig = companyConfig || {
+            id: generateUUID(),
+            name: '',
+            rif: '',
+            address: '',
+            phone: '',
+            created_at: new Date().toISOString()
+          };
+          
+          const updatedConfig = { ...baseConfig, logo: logoDataUrl };
           LocalStorageManager.set(STORAGE_KEYS.COMPANY_CONFIG, updatedConfig);
           setCompanyConfig(updatedConfig);
+          
+          // También actualizar el formulario para mostrar los cambios
+          setCompanyForm({ ...companyForm, ...updatedConfig });
           
           toast({
             title: "Éxito",
